@@ -1,5 +1,8 @@
 package com.deliverytech.delivery.model;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,4 +21,9 @@ public class Cliente {
     private String email;
 
     private Boolean ativo = true;
+
+    private LocalDateTime dataCriacao = LocalDateTime.now();
+
+    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
+    private List<Pedido> pedidos;
 }

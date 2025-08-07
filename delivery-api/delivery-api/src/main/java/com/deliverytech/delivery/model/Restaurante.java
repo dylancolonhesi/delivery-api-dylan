@@ -3,6 +3,7 @@ package com.deliverytech.delivery.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Data
@@ -26,4 +27,7 @@ public class Restaurante {
     private Integer avaliacao;
 
     private Boolean ativo = true;
+
+    @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
+    private List<Produto> produtos;
 }
