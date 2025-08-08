@@ -48,7 +48,6 @@ public class ClienteController {
                 .email(request.getEmail())
                 .telefone(request.getTelefone())
                 .endereco(request.getEndereco())
-                .ativo(true)
                 .build();
 
         Cliente salvo = clienteService.cadastrar(cliente);
@@ -56,7 +55,7 @@ public class ClienteController {
         logger.debug("Cliente salvo com ID {}", salvo.getId());
 
         return ResponseEntity.ok(
-                new ClienteResponse(salvo.getId(), salvo.getNome(), salvo.getEmail(), salvo.getAtivo()));
+                new ClienteResponse(salvo.getId(), salvo.getNome(), salvo.getEmail(), salvo.getEndereco(), salvo.getAtivo()));
     
     }
 
@@ -68,7 +67,7 @@ public class ClienteController {
     public List<ClienteResponse> listar() {
         logger.info("Listando todos os clientes ativos");
         return clienteService.listarAtivos().stream()
-                .map(c -> new ClienteResponse(c.getId(), c.getNome(), c.getEmail(), c.getAtivo()))
+                .map(c -> new ClienteResponse(c.getId(), c.getNome(), c.getEmail(), c.getEndereco(), c.getAtivo()))
                 .collect(Collectors.toList());
     }
 
@@ -81,7 +80,7 @@ public class ClienteController {
     public ResponseEntity<ClienteResponse> buscar(@PathVariable Long id) {
         logger.info("Buscando cliente com ID: {}", id);
         return clienteService.buscarPorId(id)
-                .map(c -> new ClienteResponse(c.getId(), c.getNome(), c.getEmail(), c.getAtivo()))
+                .map(c -> new ClienteResponse(c.getId(), c.getNome(), c.getEmail(), c.getEndereco(), c.getAtivo()))
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> {
                     logger.warn("Cliente com ID {} não encontrado", id);
@@ -108,7 +107,7 @@ public class ClienteController {
 
         Cliente salvo = clienteService.atualizar(id, atualizado);
 
-        return ResponseEntity.ok(new ClienteResponse(salvo.getId(), salvo.getNome(), salvo.getEmail(), salvo.getAtivo()));
+        return ResponseEntity.ok(new ClienteResponse(salvo.getId(), salvo.getNome(), salvo.getEmail(), salvo.getEndereco(), salvo.getAtivo()));
     }
 
     /**

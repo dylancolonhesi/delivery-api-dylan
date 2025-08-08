@@ -102,6 +102,7 @@ public class PedidoController {
      * @param clienteId ID do cliente cujos pedidos serão listados
      * @return Lista de pedidos do cliente especificado
      */
+    //TODO: AJUSTAR ERRO
     @GetMapping("/cliente/{clienteId}")
     public List<PedidoResponse> listarPedidosPorCliente(@PathVariable Long clienteId) {
         return pedidoService.listarPedidosPorCliente(clienteId).stream()

@@ -19,13 +19,16 @@ public class Cliente {
 
     private String telefone;
     
-    private String endereco;
+    @Embedded
+    private Endereco endereco;
 
     @Column(unique = true)
     private String email;
 
+    @Builder.Default
     private Boolean ativo = true;
 
+    @Builder.Default
     private LocalDateTime dataCriacao = LocalDateTime.now();
 
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
