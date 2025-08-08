@@ -49,6 +49,9 @@ public class ClienteServiceImpl implements ClienteService {
         return clienteRepository.findById(id)
                 .map(c -> {
                     c.setNome(atualizado.getNome());
+                    c.setEmail(atualizado.getEmail());
+                    c.setTelefone(atualizado.getTelefone());
+                    c.setEndereco(atualizado.getEndereco());
                     return clienteRepository.save(c);
                 }).orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
     }
@@ -56,7 +59,9 @@ public class ClienteServiceImpl implements ClienteService {
     @Override
     public void ativarDesativar(Long id) {
         clienteRepository.findById(id).ifPresentOrElse(cliente -> {
-            cliente.setAtivo(!cliente.getAtivo());
+            // Se ativo for null, define como false, senão inverte o valor atual
+            Boolean ativoAtual = cliente.getAtivo() != null ? cliente.getAtivo() : false;
+            cliente.setAtivo(!ativoAtual);
             clienteRepository.save(cliente);
         }, () -> {
             throw new RuntimeException("Cliente não encontrado com ID: " + id);

@@ -6,7 +6,7 @@ import java.util.Optional;
 import com.deliverytech.delivery.model.Produto;
 
 public interface ProdutoService {
-    void adicionarProduto(Produto produto);
+    Produto adicionarProduto(Produto produto);
     Optional<Produto> buscarProdutoPorId(Long id);
     List<Produto> listarProdutos();
     List<Produto> listarProdutosPorRestaurante(Long restauranteId);

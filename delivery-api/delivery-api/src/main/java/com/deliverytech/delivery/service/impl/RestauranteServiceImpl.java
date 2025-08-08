@@ -20,8 +20,8 @@ public class RestauranteServiceImpl implements RestauranteService {
     private final RestauranteRepository restauranteRepository;
 
     @Override
-    public void adicionarRestaurante(Restaurante restaurante) {
-        restauranteRepository.save(restaurante);
+    public Restaurante adicionarRestaurante(Restaurante restaurante) {
+        return restauranteRepository.save(restaurante);
     }
 
     @Override

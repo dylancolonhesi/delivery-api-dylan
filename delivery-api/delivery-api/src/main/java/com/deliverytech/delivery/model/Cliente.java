@@ -17,6 +17,10 @@ public class Cliente {
 
     private String nome;
 
+    private String telefone;
+    
+    private String endereco;
+
     @Column(unique = true)
     private String email;
 

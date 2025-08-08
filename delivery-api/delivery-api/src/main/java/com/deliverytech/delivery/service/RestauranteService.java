@@ -11,7 +11,7 @@ import com.deliverytech.delivery.model.Restaurante;
 @Cacheable("restaurantes")
 public interface RestauranteService {
 
-    void adicionarRestaurante(Restaurante restaurante);
+    Restaurante adicionarRestaurante(Restaurante restaurante);
     Optional<Restaurante> buscarRestaurantePorId(Long id);
     List<Restaurante> listarRestaurantes();
     List<Restaurante> buscarRestaurantePorCategoria(String categoria);

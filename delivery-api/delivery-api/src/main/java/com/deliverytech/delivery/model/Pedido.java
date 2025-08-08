@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Data
@@ -31,4 +32,10 @@ public class Pedido {
     private LocalDateTime dataPedido = LocalDateTime.now();
 
     private String relatorioPedido;
+
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
+    private List<ItemPedido> itens;
+
+    @Embedded
+    private Endereco enderecoEntrega;
 }
