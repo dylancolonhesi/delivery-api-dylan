@@ -1,19 +1,19 @@
 package com.deliverytech.delivery.service;
 
-import com.deliverytech.delivery.model.Cliente;
-
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.cache.annotation.Cacheable;
 
+import com.deliverytech.delivery.dto.request.ClienteRequest;
+import com.deliverytech.delivery.model.Cliente;
+
 @Cacheable("clientes")
 public interface ClienteService {
-    Cliente cadastrar(Cliente cliente);
-    Optional<Cliente> buscarPorId(Long id);
-    List<Cliente> listarAtivos();
-    List<Cliente> listarTodos();
-    Optional<Cliente> buscarPorEmail(String email);
-    Cliente atualizar(Long id, Cliente atualizado);
-    void ativarDesativar(Long id);
+    Cliente cadastrarCliente(ClienteRequest dto);
+    Optional<Cliente> buscarClientePorId(Long id);
+    Optional<Cliente> buscarClientePorEmail(String email);
+    Cliente atualizarCliente(Long id, ClienteRequest dto);
+    void ativarDesativarCliente(Long id);
+    List<Cliente> listarClientesAtivos();
 }

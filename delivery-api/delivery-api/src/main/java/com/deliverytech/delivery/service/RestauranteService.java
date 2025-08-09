@@ -1,20 +1,20 @@
 package com.deliverytech.delivery.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.cache.annotation.Cacheable;
-
+import com.deliverytech.delivery.dto.request.RestauranteRequest;
 import com.deliverytech.delivery.model.Restaurante;
 
-
-@Cacheable("restaurantes")
 public interface RestauranteService {
 
-    Restaurante adicionarRestaurante(Restaurante restaurante);
+    Restaurante cadastrarRestaurante(RestauranteRequest dto);
     Optional<Restaurante> buscarRestaurantePorId(Long id);
+    List<Restaurante> buscarRestaurantesPorCategoria(String categoria);
+    List<Restaurante> buscarRestaurantesDisponiveis();
     List<Restaurante> listarRestaurantes();
-    List<Restaurante> buscarRestaurantePorCategoria(String categoria);
-    Restaurante atualizarRestaurante(Long id, Restaurante restaurante);
+    Restaurante atualizarRestaurante(Long id, RestauranteRequest dto);
+    BigDecimal calcularTaxaEntrega(Long restauranteId, String cepDestino);
     void removerRestaurante(Long id);
 }

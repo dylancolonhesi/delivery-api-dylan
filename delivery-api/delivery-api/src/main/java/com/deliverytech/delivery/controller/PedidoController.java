@@ -1,6 +1,7 @@
 package com.deliverytech.delivery.controller;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,47 +44,21 @@ public class PedidoController {
     private final PedidoService pedidoService;
     private final ClienteService clienteService;
     private final RestauranteService restauranteService;
-    private final ProdutoService produtoService;
 
-    /**
-     * Cria um novo pedido no sistema
-     * @param request Dados do pedido a ser criado
-     * @return ResponseEntity com os dados do pedido criado
-     */
     @PostMapping
     public ResponseEntity<PedidoResponse> criarPedido(@Valid @RequestBody PedidoRequest request) {
-        Cliente cliente = clienteService.buscarPorId(request.getClienteId())
+        Cliente cliente = clienteService.buscarClientePorId(request.getClienteId())
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
         Restaurante restaurante = restauranteService.buscarRestaurantePorId(request.getRestauranteId())
                 .orElseThrow(() -> new RuntimeException("Restaurante não encontrado"));
 
-        List<ItemPedido> itens = request.getItens().stream().map(item -> {
-            Produto produto = produtoService.buscarProdutoPorId(item.getProdutoId())
-                    .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
-            return ItemPedido.builder()
-                    .produto(produto)
-                    .quantidade(item.getQuantidade())
-                    .precoUnitario(produto.getPreco())
-                    .build();
-        }).collect(Collectors.toList());
-
-        BigDecimal total = itens.stream()
-                .map(i -> i.getPrecoUnitario().multiply(BigDecimal.valueOf(i.getQuantidade())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        Pedido pedido = Pedido.builder()
-                .cliente(cliente)
-                .restaurante(restaurante)
-                .status(StatusPedido.CRIADO)
-                .total(total)
-                .enderecoEntrega(request.getEnderecoEntrega())
-                .itens(itens)
-                .build();
-
-        Pedido salvo = pedidoService.criarPedido(pedido);
-        List<ItemPedidoResponse> itensResp = salvo.getItens().stream()
-                .map(i -> new ItemPedidoResponse(i.getProduto().getId(), i.getProduto().getNome(), i.getQuantidade(), i.getPrecoUnitario()))
-                .collect(Collectors.toList());
+        Pedido salvo = pedidoService.criarPedido(request);
+        
+        List<ItemPedidoResponse> itensResp = salvo.getItens() != null ? 
+                salvo.getItens().stream()
+                    .map(i -> new ItemPedidoResponse(i.getProduto().getId(), i.getProduto().getNome(), i.getQuantidade(), i.getPrecoUnitario()))
+                    .collect(Collectors.toList()) :
+                new ArrayList<>();
 
         return ResponseEntity.ok(new PedidoResponse(
                 salvo.getId(),
@@ -97,15 +72,22 @@ public class PedidoController {
         ));
     }
 
-    /**
-     * Lista todos os pedidos de um cliente específico
-     * @param clienteId ID do cliente cujos pedidos serão listados
-     * @return Lista de pedidos do cliente especificado
-     */
-    //TODO: AJUSTAR ERRO
+    @PostMapping("/calcular")
+    public ResponseEntity<BigDecimal> calcularTotal(@Valid @RequestBody PedidoRequest request) {
+        logger.debug("Calculando total do pedido para cliente {} e restaurante {}", 
+                    request.getClienteId(), request.getRestauranteId());
+        try {
+            BigDecimal total = pedidoService.calcularTotalSemSalvar(request);
+            return ResponseEntity.ok(total);
+        } catch (RuntimeException e) {
+            logger.error("Erro ao calcular total do pedido: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @GetMapping("/cliente/{clienteId}")
     public List<PedidoResponse> listarPedidosPorCliente(@PathVariable Long clienteId) {
-        return pedidoService.listarPedidosPorCliente(clienteId).stream()
+        return pedidoService.buscarPedidosPorCliente(clienteId).stream()
                 .map(p -> {
                     List<ItemPedidoResponse> itensResp = p.getItens().stream()
                             .map(i -> new ItemPedidoResponse(i.getProduto().getId(), i.getProduto().getNome(), i.getQuantidade(), i.getPrecoUnitario()))
@@ -125,25 +107,24 @@ public class PedidoController {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping("/{id}")
+    public List<ItemPedidoResponse> buscarPedidoPorId(@PathVariable Long id) {
+        Pedido pedido = pedidoService.buscarPedidoPorId(id)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+        
+        return pedido.getItens().stream()
+                .map(i -> new ItemPedidoResponse(i.getProduto().getId(), i.getProduto().getNome(), i.getQuantidade(), i.getPrecoUnitario()))
+                .collect(Collectors.toList());
+    }
 
-    /**
-     * Altera o status de um pedido específico
-     * @param id ID do pedido que terá o status alterado
-     * @param status Novo status do pedido
-     * @return ResponseEntity vazio com status 204 (No Content)
-     */
     @PutMapping("/status/{id}")
     public ResponseEntity<Void> alterarStatus(@PathVariable Long id, @RequestParam StatusPedido status) {
-        pedidoService.atualizarStatus(id, status);
+        pedidoService.atualizarStatusPedido(id, status);
         logger.info("Status do pedido com ID {} alterado para {}", id, status);
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Cancela um pedido específico
-     * @param id ID do pedido a ser cancelado
-     * @return ResponseEntity vazio com status 204 (No Content)
-     */
+
     @PatchMapping("/{id}/cancelar")
     public ResponseEntity<Void> cancelarPedido(@PathVariable Long id) {
         logger.info("Cancelando pedido com ID: {}", id);

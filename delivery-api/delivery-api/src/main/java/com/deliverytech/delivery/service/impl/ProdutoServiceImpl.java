@@ -6,11 +6,14 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.deliverytech.delivery.dto.request.ProdutoRequest;
 import com.deliverytech.delivery.model.Produto;
+import com.deliverytech.delivery.model.Restaurante;
 import com.deliverytech.delivery.repository.ProdutoRepository;
+import com.deliverytech.delivery.repository.RestauranteRepository;
+import com.deliverytech.delivery.service.ProdutoService;
 
 import lombok.RequiredArgsConstructor;
-import com.deliverytech.delivery.service.ProdutoService;
 
 @Service
 @RequiredArgsConstructor
@@ -18,10 +21,28 @@ import com.deliverytech.delivery.service.ProdutoService;
 public class ProdutoServiceImpl implements ProdutoService {
 
     private final ProdutoRepository produtoRepository;
+    private final RestauranteRepository restauranteRepository;
 
     @Override
-    public Produto adicionarProduto(Produto produto) {
+    public Produto cadastrarProduto(ProdutoRequest dto) {
+        Restaurante restaurante = restauranteRepository.findById(dto.getRestauranteId())
+                .orElseThrow(() -> new RuntimeException("Restaurante não encontrado"));
+        
+        Produto produto = Produto.builder()
+                .nome(dto.getNome())
+                .descricao(dto.getDescricao())
+                .preco(dto.getPreco())
+                .categoria(dto.getCategoria())
+                .restaurante(restaurante)
+                .disponivel(true)
+                .build();
+        
         return produtoRepository.save(produto);
+    }
+
+    @Override
+    public List<Produto> buscarProdutosPorRestaurante(Long restauranteId) {
+        return produtoRepository.findByRestauranteId(restauranteId);
     }
 
     @Override
@@ -30,38 +51,29 @@ public class ProdutoServiceImpl implements ProdutoService {
     }
 
     @Override
-    public List<Produto> listarProdutos() {
-        return produtoRepository.findAll();
+    public Produto atualizarProduto(Long id, ProdutoRequest dto) {
+        return produtoRepository.findById(id)
+                .map(produto -> {
+                    produto.setNome(dto.getNome());
+                    produto.setDescricao(dto.getDescricao());
+                    produto.setPreco(dto.getPreco());
+                    produto.setCategoria(dto.getCategoria());
+                    return produtoRepository.save(produto);
+                }).orElseThrow(() -> new RuntimeException("Produto não encontrado"));
     }
 
     @Override
-    public List<Produto> listarProdutosPorRestaurante(Long restauranteId) {
-        return produtoRepository.findByRestauranteId(restauranteId);
+    public void alterarDisponibilidade(Long id, boolean disponivel) {
+        produtoRepository.findById(id).ifPresentOrElse(produto -> {
+            produto.setDisponivel(disponivel);
+            produtoRepository.save(produto);
+        }, () -> {
+            throw new RuntimeException("Produto não encontrado com ID: " + id);
+        });
     }
 
     @Override
     public List<Produto> buscarProdutosPorCategoria(String categoria) {
         return produtoRepository.findByCategoria(categoria);
     }
-
-    @Override
-    public Produto atualizarProduto(Long id, Produto produto) {
-        return produtoRepository.findById(id)
-                .map(p -> {
-                    p.setNome(produto.getNome());
-                    p.setDescricao(produto.getDescricao());
-                    p.setPreco(produto.getPreco());
-                    p.setCategoria(produto.getCategoria());
-                    return produtoRepository.save(p);
-                }).orElseThrow(() -> new RuntimeException("Produto não encontrado"));
-    }
-
-    @Override
-    public void alterarDisponibilidadeProduto(Long id, boolean disponivel) {
-        produtoRepository.findById(id).ifPresent(p -> {
-            p.setDisponivel(disponivel);
-            produtoRepository.save(p);
-        });
-    }
-    
 }
