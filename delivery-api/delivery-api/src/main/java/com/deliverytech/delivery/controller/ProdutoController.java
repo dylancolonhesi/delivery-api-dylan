@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.deliverytech.delivery.dto.request.ProdutoRequest;
 import com.deliverytech.delivery.dto.response.ProdutoResponse;
 import com.deliverytech.delivery.model.Produto;
-import com.deliverytech.delivery.model.Restaurante;
 import com.deliverytech.delivery.service.ProdutoService;
 import com.deliverytech.delivery.service.RestauranteService;
 

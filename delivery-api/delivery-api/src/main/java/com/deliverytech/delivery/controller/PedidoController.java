@@ -22,14 +22,11 @@ import com.deliverytech.delivery.dto.request.PedidoRequest;
 import com.deliverytech.delivery.dto.response.ItemPedidoResponse;
 import com.deliverytech.delivery.dto.response.PedidoResponse;
 import com.deliverytech.delivery.model.Cliente;
-import com.deliverytech.delivery.model.ItemPedido;
 import com.deliverytech.delivery.model.Pedido;
-import com.deliverytech.delivery.model.Produto;
 import com.deliverytech.delivery.model.Restaurante;
 import com.deliverytech.delivery.model.StatusPedido;
 import com.deliverytech.delivery.service.ClienteService;
 import com.deliverytech.delivery.service.PedidoService;
-import com.deliverytech.delivery.service.ProdutoService;
 import com.deliverytech.delivery.service.RestauranteService;
 
 import jakarta.validation.Valid;

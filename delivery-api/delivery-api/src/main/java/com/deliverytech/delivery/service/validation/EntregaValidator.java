@@ -1,5 +1,6 @@
 package com.deliverytech.delivery.service.validation;
 
+import java.math.BigDecimal;
 import org.springframework.stereotype.Component;
 
 import com.deliverytech.delivery.model.Endereco;
@@ -9,13 +10,10 @@ import com.deliverytech.delivery.model.Restaurante;
 public class EntregaValidator {
 
     public boolean restauranteEntregaNoEndereco(Restaurante restaurante, Endereco endereco) {
-        if (endereco == null || endereco.getCidade() == null) {
-            return false;
-        }
-        return true; 
+        return endereco != null && endereco.getCidade() != null && !endereco.getCidade().trim().isEmpty();
     }
 
-    public java.math.BigDecimal calcularTaxaEntrega(Restaurante restaurante, Endereco endereco) {
-        return restaurante.getTaxaEntrega();
+    public BigDecimal calcularTaxaEntrega(Restaurante restaurante, Endereco endereco) {
+        return restaurante.getTaxaEntrega() != null ? restaurante.getTaxaEntrega() : BigDecimal.ZERO;
     }
 }

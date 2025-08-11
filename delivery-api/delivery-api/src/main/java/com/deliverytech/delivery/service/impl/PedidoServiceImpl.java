@@ -45,76 +45,65 @@ public class PedidoServiceImpl implements PedidoService {
     public Pedido criarPedido(PedidoRequest dto) {
         log.info("Iniciando criação de pedido para cliente ID: {}", dto.getClienteId());
         
-        // 1. VALIDAR CLIENTE
         Cliente cliente = validarCliente(dto.getClienteId(), dto.getEnderecoEntrega());
-        
-        // 2. VALIDAR RESTAURANTE  
         Restaurante restaurante = validarRestaurante(dto.getRestauranteId(), dto.getEnderecoEntrega());
-        
-        // 3. VALIDAR PRODUTOS
         List<Produto> produtos = validarProdutos(dto.getItens(), restaurante);
-        
-        // 4. CALCULAR TOTAL
+
         BigDecimal totalItens = calcularTotalItens(dto.getItens(), produtos);
         BigDecimal taxaEntrega = entregaValidator.calcularTaxaEntrega(restaurante, dto.getEnderecoEntrega());
         BigDecimal totalPedido = totalItens.add(taxaEntrega);
-        
-        // 5. SALVAR TRANSACIONALMENTE
+
         return salvarPedidoCompleto(cliente, restaurante, dto, produtos, totalPedido);
     }
     
-    /**
-     * 1. Validação do Cliente
-     */
     private Cliente validarCliente(Long clienteId, Endereco enderecoEntrega) {
         log.debug("Validando cliente ID: {}", clienteId);
         
-        // Cliente existe?
         Cliente cliente = clienteRepository.findById(clienteId)
                 .orElseThrow(() -> new EntityNotFoundException("Cliente", clienteId));
         
-        // Cliente está ativo?
-        if (!cliente.getAtivo()) {
+        if (Boolean.FALSE.equals(cliente.getAtivo())) {
             throw new ValidationException("Cliente não está ativo");
         }
         
-        // Endereço de entrega informado?
-        if (enderecoEntrega == null) {
-            throw new ValidationException("enderecoEntrega", "Endereço de entrega é obrigatório");
-        }
-        
-        if (enderecoEntrega.getRua() == null || enderecoEntrega.getRua().trim().isEmpty()) {
-            throw new ValidationException("enderecoEntrega.rua", "Rua é obrigatória");
-        }
-        
-        if (enderecoEntrega.getCidade() == null || enderecoEntrega.getCidade().trim().isEmpty()) {
-            throw new ValidationException("enderecoEntrega.cidade", "Cidade é obrigatória");
-        }
-        
-        if (enderecoEntrega.getCep() == null || enderecoEntrega.getCep().trim().isEmpty()) {
-            throw new ValidationException("enderecoEntrega.cep", "CEP é obrigatório");
-        }
+        validarEnderecoEntrega(enderecoEntrega);
         
         log.debug("Cliente validado com sucesso: {}", cliente.getNome());
         return cliente;
     }
     
-    /**
-     * 2. Validação do Restaurante
-     */
+    private void validarEnderecoEntrega(Endereco enderecoEntrega) {
+        if (enderecoEntrega == null) {
+            throw new ValidationException("enderecoEntrega", "Endereço de entrega é obrigatório");
+        }
+        
+        if (isStringNullOrEmpty(enderecoEntrega.getRua())) {
+            throw new ValidationException("enderecoEntrega.rua", "Rua é obrigatória");
+        }
+        
+        if (isStringNullOrEmpty(enderecoEntrega.getCidade())) {
+            throw new ValidationException("enderecoEntrega.cidade", "Cidade é obrigatória");
+        }
+        
+        if (isStringNullOrEmpty(enderecoEntrega.getCep())) {
+            throw new ValidationException("enderecoEntrega.cep", "CEP é obrigatório");
+        }
+    }
+    
+    private boolean isStringNullOrEmpty(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+    
     private Restaurante validarRestaurante(Long restauranteId, Endereco enderecoEntrega) {
         log.debug("Validando restaurante ID: {}", restauranteId);
         
-        // Restaurante existe?
         Restaurante restaurante = restauranteRepository.findById(restauranteId)
                 .orElseThrow(() -> new EntityNotFoundException("Restaurante", restauranteId));
         
-        // Restaurante está ativo?
-        if (!restaurante.getAtivo()) {
+        if (Boolean.FALSE.equals(restaurante.getAtivo())) {
             throw new ValidationException("Restaurante não está ativo");
         }
         
-        // Restaurante entrega no endereço?
         if (!entregaValidator.restauranteEntregaNoEndereco(restaurante, enderecoEntrega)) {
             throw new ValidationException("Restaurante não entrega no endereço informado");
         }
@@ -123,9 +112,6 @@ public class PedidoServiceImpl implements PedidoService {
         return restaurante;
     }
     
-    /**
-     * 3. Validação dos Produtos
-     */
     private List<Produto> validarProdutos(List<ItemPedidoRequest> itens, Restaurante restaurante) {
         log.debug("Validando {} produtos", itens.size());
         
@@ -136,25 +122,8 @@ public class PedidoServiceImpl implements PedidoService {
         List<Produto> produtos = new ArrayList<>();
         
         for (ItemPedidoRequest item : itens) {
-            // Quantidade válida?
-            if (item.getQuantidade() == null || item.getQuantidade() <= 0) {
-                throw new ValidationException("quantidade", "Quantidade deve ser maior que zero");
-            }
-            
-            // Produto existe?
-            Produto produto = produtoRepository.findById(item.getProdutoId())
-                    .orElseThrow(() -> new EntityNotFoundException("Produto", item.getProdutoId()));
-            
-            // Produto está disponível?
-            if (!produto.getDisponivel()) {
-                throw new ValidationException(String.format("Produto '%s' não está disponível", produto.getNome()));
-            }
-            
-            // Produto pertence ao restaurante?
-            if (!produto.getRestaurante().getId().equals(restaurante.getId())) {
-                throw new ValidationException(String.format("Produto '%s' não pertence ao restaurante selecionado", produto.getNome()));
-            }
-            
+            validarQuantidadeItem(item);
+            Produto produto = buscarEValidarProduto(item.getProdutoId(), restaurante);
             produtos.add(produto);
         }
         
@@ -162,9 +131,27 @@ public class PedidoServiceImpl implements PedidoService {
         return produtos;
     }
     
-    /**
-     * 4. Cálculo do Total dos Itens
-     */
+    private void validarQuantidadeItem(ItemPedidoRequest item) {
+        if (item.getQuantidade() == null || item.getQuantidade() <= 0) {
+            throw new ValidationException("quantidade", "Quantidade deve ser maior que zero");
+        }
+    }
+    
+    private Produto buscarEValidarProduto(Long produtoId, Restaurante restaurante) {
+        Produto produto = produtoRepository.findById(produtoId)
+                .orElseThrow(() -> new EntityNotFoundException("Produto", produtoId));
+        
+        if (Boolean.FALSE.equals(produto.getDisponivel())) {
+            throw new ValidationException(String.format("Produto '%s' não está disponível", produto.getNome()));
+        }
+        
+        if (!produto.getRestaurante().getId().equals(restaurante.getId())) {
+            throw new ValidationException(String.format("Produto '%s' não pertence ao restaurante selecionado", produto.getNome()));
+        }
+        
+        return produto;
+    }
+    
     private BigDecimal calcularTotalItens(List<ItemPedidoRequest> itens, List<Produto> produtos) {
         BigDecimal total = BigDecimal.ZERO;
         
@@ -180,14 +167,10 @@ public class PedidoServiceImpl implements PedidoService {
         return total;
     }
     
-    /**
-     * 5. Salvamento Transacional Completo
-     */
     private Pedido salvarPedidoCompleto(Cliente cliente, Restaurante restaurante, PedidoRequest dto, 
                                       List<Produto> produtos, BigDecimal totalPedido) {
         log.debug("Salvando pedido transacionalmente");
         
-        // Criar o pedido
         Pedido pedido = Pedido.builder()
                 .cliente(cliente)
                 .restaurante(restaurante)
@@ -197,11 +180,20 @@ public class PedidoServiceImpl implements PedidoService {
                 .itens(new ArrayList<>())
                 .build();
         
-        // Criar os itens do pedido
+        List<ItemPedido> itensPedido = criarItensPedido(dto.getItens(), produtos, pedido);
+        pedido.setItens(itensPedido);
+        
+        Pedido pedidoSalvo = pedidoRepository.save(pedido);
+        
+        log.info("Pedido criado com sucesso - ID: {}, Total: {}", pedidoSalvo.getId(), pedidoSalvo.getTotal());
+        return pedidoSalvo;
+    }
+    
+    private List<ItemPedido> criarItensPedido(List<ItemPedidoRequest> itensRequest, List<Produto> produtos, Pedido pedido) {
         List<ItemPedido> itensPedido = new ArrayList<>();
         
-        for (int i = 0; i < dto.getItens().size(); i++) {
-            ItemPedidoRequest itemRequest = dto.getItens().get(i);
+        for (int i = 0; i < itensRequest.size(); i++) {
+            ItemPedidoRequest itemRequest = itensRequest.get(i);
             Produto produto = produtos.get(i);
             
             ItemPedido item = ItemPedido.builder()
@@ -214,13 +206,7 @@ public class PedidoServiceImpl implements PedidoService {
             itensPedido.add(item);
         }
         
-        pedido.setItens(itensPedido);
-        
-        // Salvar o pedido (cascade salvará os itens)
-        Pedido pedidoSalvo = pedidoRepository.save(pedido);
-        
-        log.info("Pedido criado com sucesso - ID: {}, Total: {}", pedidoSalvo.getId(), pedidoSalvo.getTotal());
-        return pedidoSalvo;
+        return itensPedido;
     }
 
     @Override
@@ -239,7 +225,7 @@ public class PedidoServiceImpl implements PedidoService {
     public Pedido atualizarStatusPedido(Long id, StatusPedido status) {
         return pedidoRepository.findById(id)
                 .map(pedido -> {
-                    if (pedido.getStatus() == StatusPedido.CANCELADO) {
+                    if (StatusPedido.CANCELADO.equals(pedido.getStatus())) {
                         throw new ValidationException("Não é possível alterar status de pedido cancelado");
                     }
                     pedido.setStatus(status);
@@ -258,15 +244,11 @@ public class PedidoServiceImpl implements PedidoService {
     public BigDecimal calcularTotalSemSalvar(PedidoRequest dto) {
         log.debug("Calculando total sem salvar pedido");
         
-        // Validar dados básicos
-        Cliente cliente = validarCliente(dto.getClienteId(), dto.getEnderecoEntrega());
+        validarCliente(dto.getClienteId(), dto.getEnderecoEntrega());
         Restaurante restaurante = validarRestaurante(dto.getRestauranteId(), dto.getEnderecoEntrega());
         List<Produto> produtos = validarProdutos(dto.getItens(), restaurante);
         
-        // Calcular total dos itens
         BigDecimal totalItens = calcularTotalItens(dto.getItens(), produtos);
-        
-        // Adicionar taxa de entrega
         BigDecimal taxaEntrega = entregaValidator.calcularTaxaEntrega(restaurante, dto.getEnderecoEntrega());
         BigDecimal totalFinal = totalItens.add(taxaEntrega);
         
@@ -280,7 +262,7 @@ public class PedidoServiceImpl implements PedidoService {
     public void cancelarPedido(Long id) {
         pedidoRepository.findById(id)
                 .map(pedido -> {
-                    if (pedido.getStatus() == StatusPedido.ENTREGUE) {
+                    if (StatusPedido.ENTREGUE.equals(pedido.getStatus())) {
                         throw new ValidationException("Não é possível cancelar pedido já entregue");
                     }
                     pedido.setStatus(StatusPedido.CANCELADO);
