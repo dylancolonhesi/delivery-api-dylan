@@ -16,4 +16,7 @@ public interface ClienteService {
     Cliente atualizarCliente(Long id, ClienteRequest dto);
     void ativarDesativarCliente(Long id);
     List<Cliente> listarClientesAtivos();
+    List<Cliente> listarTodosClientes();
+    List<Cliente> buscarClientesPorNome(String nome);
+    List<Cliente> buscarClientesPorEmail(String email);
 }

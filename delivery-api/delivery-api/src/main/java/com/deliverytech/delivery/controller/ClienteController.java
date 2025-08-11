@@ -75,4 +75,21 @@ public class ClienteController {
         List<Cliente> clientes = clienteService.listarClientesAtivos();
         return ResponseEntity.ok(clientes);
     }
+
+    @GetMapping
+    public ResponseEntity<List<Cliente>> listarTodos(
+            @RequestParam(required = false) String nome,
+            @RequestParam(required = false) String email) {
+        List<Cliente> clientes;
+        
+        if (nome != null && !nome.trim().isEmpty()) {
+            clientes = clienteService.buscarClientesPorNome(nome.trim());
+        } else if (email != null && !email.trim().isEmpty()) {
+            clientes = clienteService.buscarClientesPorEmail(email.trim());
+        } else {
+            clientes = clienteService.listarTodosClientes();
+        }
+        
+        return ResponseEntity.ok(clientes);
+    }
 }

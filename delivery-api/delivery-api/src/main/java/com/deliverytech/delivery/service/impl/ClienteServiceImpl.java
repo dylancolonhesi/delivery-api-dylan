@@ -36,11 +36,13 @@ public class ClienteServiceImpl implements ClienteService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Cliente> buscarClientePorId(Long id) {
         return clienteRepository.findById(id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Cliente> buscarClientePorEmail(String email) {
         return clienteRepository.findByEmail(email.toLowerCase());
     }
@@ -73,7 +75,26 @@ public class ClienteServiceImpl implements ClienteService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Cliente> listarClientesAtivos() {
         return clienteRepository.findByAtivoTrue();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Cliente> listarTodosClientes() {
+        return clienteRepository.findAll();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Cliente> buscarClientesPorNome(String nome) {
+        return clienteRepository.findByNomeContainingIgnoreCase(nome);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Cliente> buscarClientesPorEmail(String email) {
+        return clienteRepository.findByEmailContainingIgnoreCase(email);
     }
 }

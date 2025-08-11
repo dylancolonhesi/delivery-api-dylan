@@ -29,6 +29,7 @@ public class Pedido {
     @Enumerated(EnumType.STRING)
     private StatusPedido status;
 
+    @Builder.Default
     private LocalDateTime dataPedido = LocalDateTime.now();
 
     private String relatorioPedido;

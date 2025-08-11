@@ -1,0 +1,528 @@
+{
+	"info": {
+		"_postman_id": "delivery-api-collection",
+		"name": "Delivery API - Dylan",
+		"description": "Collection completa para testar todos os endpoints da API de Delivery",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Clientes",
+			"item": [
+				{
+					"name": "Cadastrar Cliente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"João Silva\",\n  \"email\": \"joao@gmail.com\",\n  \"telefone\": \"11999999999\",\n  \"endereco\": {\n    \"rua\": \"Rua das Flores\",\n    \"numero\": \"123\",\n    \"bairro\": \"Centro\",\n    \"cidade\": \"São Paulo\",\n    \"estado\": \"SP\",\n    \"cep\": \"01234-567\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/clientes",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "clientes"]
+						}
+					}
+				},
+				{
+					"name": "Listar Todos os Clientes",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/clientes",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "clientes"]
+						}
+					}
+				},
+				{
+					"name": "Filtrar Clientes por Nome",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/clientes?nome=Silva",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "clientes"],
+							"query": [
+								{
+									"key": "nome",
+									"value": "Silva"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Filtrar Clientes por Email",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/clientes?email=gmail",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "clientes"],
+							"query": [
+								{
+									"key": "email",
+									"value": "gmail"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Listar Clientes Ativos",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/clientes/ativos",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "clientes", "ativos"]
+						}
+					}
+				},
+				{
+					"name": "Buscar Cliente por ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/clientes/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "clientes", "1"]
+						}
+					}
+				},
+				{
+					"name": "Buscar Cliente por Email Específico",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/clientes/email?email=joao@gmail.com",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "clientes", "email"],
+							"query": [
+								{
+									"key": "email",
+									"value": "joao@gmail.com"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Atualizar Cliente",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"João Silva Santos\",\n  \"email\": \"joao.santos@gmail.com\",\n  \"telefone\": \"11888888888\",\n  \"endereco\": {\n    \"rua\": \"Rua das Palmeiras\",\n    \"numero\": \"456\",\n    \"bairro\": \"Jardins\",\n    \"cidade\": \"São Paulo\",\n    \"estado\": \"SP\",\n    \"cep\": \"01234-890\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/clientes/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "clientes", "1"]
+						}
+					}
+				},
+				{
+					"name": "Ativar/Desativar Cliente",
+					"request": {
+						"method": "PATCH",
+						"url": {
+							"raw": "{{baseUrl}}/api/clientes/1/ativar-desativar",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "clientes", "1", "ativar-desativar"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Restaurantes",
+			"item": [
+				{
+					"name": "Cadastrar Restaurante",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Pizza Express\",\n  \"categoria\": \"Italiana\",\n  \"telefone\": \"11777777777\",\n  \"taxaEntrega\": 8.50,\n  \"tempoEntregaMinutos\": 45\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurantes",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "restaurantes"]
+						}
+					}
+				},
+				{
+					"name": "Listar Todos os Restaurantes",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurantes",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "restaurantes"]
+						}
+					}
+				},
+				{
+					"name": "Buscar Restaurante por ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurantes/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "restaurantes", "1"]
+						}
+					}
+				},
+				{
+					"name": "Buscar Restaurantes por Categoria",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurantes/categoria/Italiana",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "restaurantes", "categoria", "Italiana"]
+						}
+					}
+				},
+				{
+					"name": "Calcular Taxa de Entrega",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurantes/1/taxa-entrega/80010-000",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "restaurantes", "1", "taxa-entrega", "80010-000"]
+						}
+					}
+				},
+				{
+					"name": "Atualizar Restaurante",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Pizza Express Premium\",\n  \"categoria\": \"Italiana\",\n  \"telefone\": \"11777777777\",\n  \"taxaEntrega\": 10.00,\n  \"tempoEntregaMinutos\": 40\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurantes/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "restaurantes", "1"]
+						}
+					}
+				},
+				{
+					"name": "Remover Restaurante",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurantes/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "restaurantes", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Produtos",
+			"item": [
+				{
+					"name": "Cadastrar Produto",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Pizza Margherita\",\n  \"categoria\": \"Pizza\",\n  \"descricao\": \"Pizza tradicional com molho de tomate, mussarela e manjericão\",\n  \"preco\": 29.90,\n  \"restauranteId\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/produtos",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "produtos"]
+						}
+					}
+				},
+				{
+					"name": "Listar Produtos por Restaurante",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/produtos/restaurante/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "produtos", "restaurante", "1"]
+						}
+					}
+				},
+				{
+					"name": "Listar Produtos por Categoria",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/produtos/categoria/Pizza",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "produtos", "categoria", "Pizza"]
+						}
+					}
+				},
+				{
+					"name": "Atualizar Produto",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Pizza Margherita Premium\",\n  \"categoria\": \"Pizza\",\n  \"descricao\": \"Pizza tradicional com molho de tomate, mussarela especial e manjericão fresco\",\n  \"preco\": 35.90,\n  \"restauranteId\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/produtos/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "produtos", "1"]
+						}
+					}
+				},
+				{
+					"name": "Alterar Disponibilidade - Ativar",
+					"request": {
+						"method": "PATCH",
+						"url": {
+							"raw": "{{baseUrl}}/api/produtos/1/disponibilidade?disponivel=true",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "produtos", "1", "disponibilidade"],
+							"query": [
+								{
+									"key": "disponivel",
+									"value": "true"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Alterar Disponibilidade - Desativar",
+					"request": {
+						"method": "PATCH",
+						"url": {
+							"raw": "{{baseUrl}}/api/produtos/1/disponibilidade?disponivel=false",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "produtos", "1", "disponibilidade"],
+							"query": [
+								{
+									"key": "disponivel",
+									"value": "false"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Pedidos",
+			"item": [
+				{
+					"name": "Criar Pedido",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"clienteId\": 1,\n  \"restauranteId\": 1,\n  \"enderecoEntrega\": {\n    \"rua\": \"Rua das Entregas, 789\",\n    \"numero\": \"789\",\n    \"bairro\": \"Centro\",\n    \"cidade\": \"São Paulo\",\n    \"cep\": \"80010-000\"\n  },\n  \"itens\": [\n    {\n      \"produtoId\": 1,\n      \"quantidade\": 2\n    },\n    {\n      \"produtoId\": 2,\n      \"quantidade\": 1\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/pedidos",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "pedidos"]
+						}
+					}
+				},
+				{
+					"name": "Calcular Total do Pedido",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"clienteId\": 1,\n  \"restauranteId\": 1,\n  \"enderecoEntrega\": {\n    \"rua\": \"Rua das Entregas, 789\",\n    \"numero\": \"789\",\n    \"bairro\": \"Centro\",\n    \"cidade\": \"São Paulo\",\n    \"cep\": \"80010-000\"\n  },\n  \"itens\": [\n    {\n      \"produtoId\": 1,\n      \"quantidade\": 2\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/pedidos/calcular",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "pedidos", "calcular"]
+						}
+					}
+				},
+				{
+					"name": "Buscar Pedido por ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/pedidos/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "pedidos", "1"]
+						}
+					}
+				},
+				{
+					"name": "Listar Pedidos por Cliente",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/pedidos/cliente/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "pedidos", "cliente", "1"]
+						}
+					}
+				},
+				{
+					"name": "Alterar Status do Pedido - CONFIRMADO",
+					"request": {
+						"method": "PUT",
+						"url": {
+							"raw": "{{baseUrl}}/api/pedidos/status/1?status=CONFIRMADO",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "pedidos", "status", "1"],
+							"query": [
+								{
+									"key": "status",
+									"value": "CONFIRMADO"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Alterar Status do Pedido - EM_PREPARO",
+					"request": {
+						"method": "PUT",
+						"url": {
+							"raw": "{{baseUrl}}/api/pedidos/status/1?status=EM_PREPARO",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "pedidos", "status", "1"],
+							"query": [
+								{
+									"key": "status",
+									"value": "EM_PREPARO"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Alterar Status do Pedido - SAIU_PARA_ENTREGA",
+					"request": {
+						"method": "PUT",
+						"url": {
+							"raw": "{{baseUrl}}/api/pedidos/status/1?status=SAIU_PARA_ENTREGA",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "pedidos", "status", "1"],
+							"query": [
+								{
+									"key": "status",
+									"value": "SAIU_PARA_ENTREGA"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Alterar Status do Pedido - ENTREGUE",
+					"request": {
+						"method": "PUT",
+						"url": {
+							"raw": "{{baseUrl}}/api/pedidos/status/1?status=ENTREGUE",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "pedidos", "status", "1"],
+							"query": [
+								{
+									"key": "status",
+									"value": "ENTREGUE"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Cancelar Pedido",
+					"request": {
+						"method": "PATCH",
+						"url": {
+							"raw": "{{baseUrl}}/api/pedidos/1/cancelar",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "pedidos", "1", "cancelar"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["health"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}
