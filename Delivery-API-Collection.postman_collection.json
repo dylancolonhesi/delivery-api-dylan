@@ -352,6 +352,105 @@
 					}
 				},
 				{
+					"name": "Listar Restaurantes com Paginação",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurantes?page=0&size=10&sortBy=nome&sortDir=asc",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "restaurantes"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0",
+									"description": "Número da página (0-indexed)"
+								},
+								{
+									"key": "size",
+									"value": "10",
+									"description": "Tamanho da página"
+								},
+								{
+									"key": "sortBy",
+									"value": "nome",
+									"description": "Campo para ordenação"
+								},
+								{
+									"key": "sortDir",
+									"value": "asc",
+									"description": "Direção da ordenação (asc ou desc)"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Listar Restaurantes - Página 2",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurantes?page=1&size=5&sortBy=nome&sortDir=asc",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "restaurantes"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Segunda página"
+								},
+								{
+									"key": "size",
+									"value": "5",
+									"description": "5 itens por página"
+								},
+								{
+									"key": "sortBy",
+									"value": "nome",
+									"description": "Ordenar por nome"
+								},
+								{
+									"key": "sortDir",
+									"value": "asc",
+									"description": "Ordem crescente"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Listar Restaurantes - Ordenar por Taxa de Entrega",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurantes?page=0&size=10&sortBy=taxaEntrega&sortDir=desc",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "restaurantes"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0",
+									"description": "Primeira página"
+								},
+								{
+									"key": "size",
+									"value": "10",
+									"description": "10 itens por página"
+								},
+								{
+									"key": "sortBy",
+									"value": "taxaEntrega",
+									"description": "Ordenar por taxa de entrega"
+								},
+								{
+									"key": "sortDir",
+									"value": "desc",
+									"description": "Ordem decrescente (maior taxa primeiro)"
+								}
+							]
+						}
+					}
+				},
+				{
 					"name": "Buscar Restaurante por ID",
 					"request": {
 						"method": "GET",

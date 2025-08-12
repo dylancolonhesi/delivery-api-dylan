@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +57,11 @@ public class RestauranteServiceImpl implements RestauranteService {
     @Override
     public List<Restaurante> listarRestaurantes() {
         return restauranteRepository.findAll();
+    }
+
+    @Override
+    public Page<Restaurante> listarRestaurantesPaginados(Pageable pageable) {
+        return restauranteRepository.findAll(pageable);
     }
 
     @Override
