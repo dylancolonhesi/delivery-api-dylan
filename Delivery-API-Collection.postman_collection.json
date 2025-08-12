@@ -1,11 +1,167 @@
 {
 	"info": {
-		"_postman_id": "delivery-api-collection",
-		"name": "Delivery API - Dylan",
-		"description": "Collection completa para testar todos os endpoints da API de Delivery",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"_postman_id": "delivery-api-collection-v2",
+		"name": "Delivery API - Dylan v2.0",
+		"description": "Collection completa para testar todos os endpoints da API de Delivery com validações aprimoradas e exceptions customizadas",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"version": "2.0.0"
 	},
 	"item": [
+		{
+			"name": "Autenticação",
+			"item": [
+				{
+					"name": "Registrar Usuário Cliente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"João Silva\",\n  \"email\": \"joao@gmail.com\",\n  \"senha\": \"senha123\",\n  \"role\": \"CLIENTE\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Registrar Usuário Admin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Administrador\",\n  \"email\": \"admin@delivery.com\",\n  \"senha\": \"admin123\",\n  \"role\": \"ADMIN\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Login Cliente",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    pm.environment.set('auth_token', responseJson.token);",
+									"    pm.environment.set('user_email', responseJson.email);",
+									"    console.log('Token salvo:', responseJson.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"joao@gmail.com\",\n  \"senha\": \"senha123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    pm.environment.set('admin_token', responseJson.token);",
+									"    pm.environment.set('admin_email', responseJson.email);",
+									"    console.log('Admin Token salvo:', responseJson.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@delivery.com\",\n  \"senha\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Validar Token",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/validate",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "validate"]
+						}
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/refresh",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "refresh"]
+						}
+					}
+				}
+			]
+		},
 		{
 			"name": "Clientes",
 			"item": [
@@ -34,6 +190,12 @@
 					"name": "Listar Todos os Clientes",
 					"request": {
 						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
 						"url": {
 							"raw": "{{baseUrl}}/api/clientes",
 							"host": ["{{baseUrl}}"],
@@ -45,6 +207,12 @@
 					"name": "Filtrar Clientes por Nome",
 					"request": {
 						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
 						"url": {
 							"raw": "{{baseUrl}}/api/clientes?nome=Silva",
 							"host": ["{{baseUrl}}"],
@@ -364,11 +532,15 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"clienteId\": 1,\n  \"restauranteId\": 1,\n  \"enderecoEntrega\": {\n    \"rua\": \"Rua das Entregas, 789\",\n    \"numero\": \"789\",\n    \"bairro\": \"Centro\",\n    \"cidade\": \"São Paulo\",\n    \"cep\": \"80010-000\"\n  },\n  \"itens\": [\n    {\n      \"produtoId\": 1,\n      \"quantidade\": 2\n    },\n    {\n      \"produtoId\": 2,\n      \"quantidade\": 1\n    }\n  ]\n}"
+							"raw": "{\n  \"clienteId\": 1,\n  \"restauranteId\": 1,\n  \"enderecoEntrega\": {\n    \"rua\": \"Rua das Entregas\",\n    \"numero\": \"789\",\n    \"bairro\": \"Centro\",\n    \"cidade\": \"São Paulo\",\n    \"estado\": \"SP\",\n    \"cep\": \"01234-567\"\n  },\n  \"itens\": [\n    {\n      \"produtoId\": 1,\n      \"quantidade\": 2\n    },\n    {\n      \"produtoId\": 2,\n      \"quantidade\": 1\n    }\n  ]\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/pedidos",
@@ -385,16 +557,104 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"clienteId\": 1,\n  \"restauranteId\": 1,\n  \"enderecoEntrega\": {\n    \"rua\": \"Rua das Entregas, 789\",\n    \"numero\": \"789\",\n    \"bairro\": \"Centro\",\n    \"cidade\": \"São Paulo\",\n    \"cep\": \"80010-000\"\n  },\n  \"itens\": [\n    {\n      \"produtoId\": 1,\n      \"quantidade\": 2\n    }\n  ]\n}"
+							"raw": "{\n  \"clienteId\": 1,\n  \"restauranteId\": 1,\n  \"enderecoEntrega\": {\n    \"rua\": \"Rua das Entregas\",\n    \"numero\": \"789\",\n    \"bairro\": \"Centro\",\n    \"cidade\": \"São Paulo\",\n    \"estado\": \"SP\",\n    \"cep\": \"01234-567\"\n  },\n  \"itens\": [\n    {\n      \"produtoId\": 1,\n      \"quantidade\": 2\n    }\n  ]\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/pedidos/calcular",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "pedidos", "calcular"]
+						}
+					}
+				},
+				{
+					"name": "Teste Validação - Cliente Inativo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"clienteId\": 999,\n  \"restauranteId\": 1,\n  \"enderecoEntrega\": {\n    \"rua\": \"Rua das Entregas\",\n    \"numero\": \"789\",\n    \"bairro\": \"Centro\",\n    \"cidade\": \"São Paulo\",\n    \"estado\": \"SP\",\n    \"cep\": \"01234-567\"\n  },\n  \"itens\": [\n    {\n      \"produtoId\": 1,\n      \"quantidade\": 2\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/pedidos",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "pedidos"]
+						}
+					}
+				},
+				{
+					"name": "Teste Validação - Endereço Incompleto",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"clienteId\": 1,\n  \"restauranteId\": 1,\n  \"enderecoEntrega\": {\n    \"rua\": \"\",\n    \"numero\": \"789\",\n    \"bairro\": \"Centro\",\n    \"cidade\": \"\",\n    \"estado\": \"SP\",\n    \"cep\": \"\"\n  },\n  \"itens\": [\n    {\n      \"produtoId\": 1,\n      \"quantidade\": 2\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/pedidos",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "pedidos"]
+						}
+					}
+				},
+				{
+					"name": "Teste Validação - Produto Indisponível",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"clienteId\": 1,\n  \"restauranteId\": 1,\n  \"enderecoEntrega\": {\n    \"rua\": \"Rua das Entregas\",\n    \"numero\": \"789\",\n    \"bairro\": \"Centro\",\n    \"cidade\": \"São Paulo\",\n    \"estado\": \"SP\",\n    \"cep\": \"01234-567\"\n  },\n  \"itens\": [\n    {\n      \"produtoId\": 999,\n      \"quantidade\": 2\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/pedidos",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "pedidos"]
+						}
+					}
+				},
+				{
+					"name": "Teste Validação - Quantidade Inválida",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"clienteId\": 1,\n  \"restauranteId\": 1,\n  \"enderecoEntrega\": {\n    \"rua\": \"Rua das Entregas\",\n    \"numero\": \"789\",\n    \"bairro\": \"Centro\",\n    \"cidade\": \"São Paulo\",\n    \"estado\": \"SP\",\n    \"cep\": \"01234-567\"\n  },\n  \"itens\": [\n    {\n      \"produtoId\": 1,\n      \"quantidade\": 0\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/pedidos",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "pedidos"]
 						}
 					}
 				},
