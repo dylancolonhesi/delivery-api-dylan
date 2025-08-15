@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +24,7 @@ import com.deliverytech.delivery.dto.request.PedidoRequest;
 import com.deliverytech.delivery.dto.response.ApiResponseDTO;
 import com.deliverytech.delivery.dto.response.ItemPedidoResponse;
 import com.deliverytech.delivery.dto.response.PedidoResponse;
+import com.deliverytech.delivery.metrics.BusinessMetricsService;
 import com.deliverytech.delivery.model.Cliente;
 import com.deliverytech.delivery.model.Pedido;
 import com.deliverytech.delivery.model.Restaurante;
@@ -57,6 +59,7 @@ public class PedidoController {
     private final PedidoService pedidoService;
     private final ClienteService clienteService;
     private final RestauranteService restauranteService;
+    private final BusinessMetricsService metricsService;
 
     @PostMapping
     @Operation(summary = "Criar pedido",
@@ -72,12 +75,20 @@ public class PedidoController {
                 description = "Dados do pedido a ser criado",
                 required = true
             ) PedidoRequest request) {
+        MDC.put("correlationId", java.util.UUID.randomUUID().toString());
+        logger.info("Criando pedido | correlationId={}", MDC.get("correlationId"));
         Cliente cliente = clienteService.buscarClientePorId(request.getClienteId())
                 .orElseThrow(() -> new RuntimeException(MSG_CLIENTE_NAO_ENCONTRADO));
         Restaurante restaurante = restauranteService.buscarRestaurantePorId(request.getRestauranteId())
                 .orElseThrow(() -> new RuntimeException(MSG_RESTAURANTE_NAO_ENCONTRADO));
 
         Pedido salvo = pedidoService.criarPedido(request);
+        metricsService.incrementarPedidosPorStatus(salvo.getStatus().name());
+        metricsService.registrarLatenciaOperacaoCritica(() -> {
+            // Simula operação crítica
+        });
+        metricsService.atualizarReceitaPorHora(salvo.getTotal().doubleValue());
+        metricsService.atualizarProdutosVendidos(salvo.getItens().stream().mapToInt(i -> i.getQuantidade()).sum());
         
         List<ItemPedidoResponse> itensResp = salvo.getItens() != null ? 
                 salvo.getItens().stream()
@@ -117,6 +128,7 @@ public class PedidoController {
                     request.getClienteId(), request.getRestauranteId());
         try {
             BigDecimal total = pedidoService.calcularTotalSemSalvar(request);
+            metricsService.registrarLatenciaOperacaoCritica(() -> {});
             return ResponseEntity.ok(ApiResponseDTO.success(total, MSG_TOTAL_CALCULADO));
         } catch (RuntimeException e) {
             logger.error("Erro ao calcular total do pedido: {}", e.getMessage());
@@ -134,7 +146,7 @@ public class PedidoController {
     })
     public ResponseEntity<ApiResponseDTO<List<PedidoResponse>>> listarPedidosPorCliente(
             @PathVariable @Parameter(description = "ID do cliente") Long clienteId) {
-        List<PedidoResponse> pedidos = pedidoService.buscarPedidosPorCliente(clienteId).stream()
+    List<PedidoResponse> pedidos = pedidoService.buscarPedidosPorCliente(clienteId).stream()
                 .map(p -> {
                     List<ItemPedidoResponse> itensResp = p.getItens().stream()
                             .map(i -> new ItemPedidoResponse(i.getProduto().getId(), i.getProduto().getNome(), i.getQuantidade(), i.getPrecoUnitario()))
@@ -166,7 +178,7 @@ public class PedidoController {
     })
     public ResponseEntity<ApiResponseDTO<List<ItemPedidoResponse>>> buscarPedidoPorId(
             @PathVariable @Parameter(description = "ID do pedido") Long id) {
-        Pedido pedido = pedidoService.buscarPedidoPorId(id)
+    Pedido pedido = pedidoService.buscarPedidoPorId(id)
                 .orElseThrow(() -> new RuntimeException(MSG_PEDIDO_NAO_ENCONTRADO));
         
         List<ItemPedidoResponse> itens = pedido.getItens().stream()
@@ -186,11 +198,12 @@ public class PedidoController {
     public ResponseEntity<ApiResponseDTO<String>> alterarStatus(
             @PathVariable @Parameter(description = "ID do pedido") Long id, 
             @RequestParam @Parameter(description = "Novo status do pedido") StatusPedido status) {
-        pedidoService.atualizarStatusPedido(id, status);
-        logger.info("Status do pedido com ID {} alterado para {}", id, status);
-        
-        String mensagem = String.format("Status do pedido alterado para %s", status);
-        return ResponseEntity.ok(ApiResponseDTO.success(null, mensagem));
+    MDC.put("correlationId", java.util.UUID.randomUUID().toString());
+    pedidoService.atualizarStatusPedido(id, status);
+    metricsService.incrementarPedidosPorStatus(status.name());
+    logger.info("Status do pedido com ID {} alterado para {} | correlationId={}", id, status, MDC.get("correlationId"));
+    String mensagem = String.format("Status do pedido alterado para %s", status);
+    return ResponseEntity.ok(ApiResponseDTO.success(null, mensagem));
     }
 
 
@@ -203,10 +216,11 @@ public class PedidoController {
     })
     public ResponseEntity<ApiResponseDTO<String>> cancelarPedido(
             @PathVariable @Parameter(description = "ID do pedido") Long id) {
-        logger.info("Cancelando pedido com ID: {}", id);
-        pedidoService.cancelarPedido(id);
-        
-        return ResponseEntity.ok(ApiResponseDTO.success(null, MSG_PEDIDO_CANCELADO));
+    MDC.put("correlationId", java.util.UUID.randomUUID().toString());
+    logger.info("Cancelando pedido com ID: {} | correlationId={}", id, MDC.get("correlationId"));
+    pedidoService.cancelarPedido(id);
+    metricsService.incrementarPedidosPorStatus("CANCELADO");
+    return ResponseEntity.ok(ApiResponseDTO.success(null, MSG_PEDIDO_CANCELADO));
     }
 
 }

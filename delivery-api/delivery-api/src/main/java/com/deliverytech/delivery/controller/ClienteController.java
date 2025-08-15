@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.deliverytech.delivery.dto.request.ClienteRequest;
 import com.deliverytech.delivery.dto.response.ApiResponseDTO;
+import com.deliverytech.delivery.metrics.BusinessMetricsService;
 import com.deliverytech.delivery.model.Cliente;
 import com.deliverytech.delivery.service.ClienteService;
 
@@ -45,6 +46,7 @@ public class ClienteController {
     private static final String MSG_STATUS_ALTERADO = "Status do cliente alterado com sucesso";
 
     private final ClienteService clienteService;
+    private final BusinessMetricsService metricsService;
 
     @PostMapping
     @Operation(summary = "Cadastrar cliente",
@@ -61,7 +63,8 @@ public class ClienteController {
                 required = true
             ) ClienteRequest dto) {
         logger.info("Cadastro de cliente iniciado: {}", dto.getNome());
-        Cliente cliente = clienteService.cadastrarCliente(dto);
+    Cliente cliente = clienteService.cadastrarCliente(dto);
+    metricsService.atualizarUsuariosAtivos(1);
         logger.debug("Cliente salvo com ID {}", cliente.getId());
         
         return ResponseEntity.status(HttpStatus.CREATED)

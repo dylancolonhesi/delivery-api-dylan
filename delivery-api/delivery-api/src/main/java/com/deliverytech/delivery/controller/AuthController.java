@@ -2,6 +2,7 @@ package com.deliverytech.delivery.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -44,6 +45,7 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
+    private final com.deliverytech.delivery.metrics.BusinessMetricsService metricsService;
 
     @PostMapping("/register")
     @Operation(summary = "Registrar usuário",
@@ -59,7 +61,8 @@ public class AuthController {
                 description = "Dados do usuário a ser registrado",
                 required = true
             ) RegisterRequest request) {
-        logger.info("Registro de usuário iniciado: {}", request.getEmail());
+    MDC.put("correlationId", java.util.UUID.randomUUID().toString());
+    logger.info("Registro de usuário iniciado: {} | correlationId={}", request.getEmail(), MDC.get("correlationId"));
         
         if (usuarioRepository.findByEmail(request.getEmail()).isPresent()) {
             logger.warn("Tentativa de registro com email já cadastrado: {}", request.getEmail());
@@ -76,12 +79,12 @@ public class AuthController {
                 .restauranteId(request.getRestauranteId())
                 .build();
 
-        usuarioRepository.save(usuario);
-        logger.debug("Usuário salvo com ID {}", usuario.getId());
-        
-        String token = jwtUtil.generateToken(User.withUsername(usuario.getEmail()).password(usuario.getSenha()).authorities("ROLE_" + usuario.getRole().name()).build(), usuario);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponseDTO.success(token, MSG_USUARIO_REGISTRADO));
+    usuarioRepository.save(usuario);
+    metricsService.atualizarUsuariosAtivos(1);
+    logger.debug("Usuário salvo com ID {}", usuario.getId());
+    String token = jwtUtil.generateToken(User.withUsername(usuario.getEmail()).password(usuario.getSenha()).authorities("ROLE_" + usuario.getRole().name()).build(), usuario);
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(ApiResponseDTO.success(token, MSG_USUARIO_REGISTRADO));
     }
 
     @PostMapping("/login")
@@ -99,21 +102,21 @@ public class AuthController {
                 description = "Credenciais de login",
                 required = true
             ) LoginRequest request) {
-        logger.info("Tentativa de login para usuário: {}", request.getEmail());
+    MDC.put("correlationId", java.util.UUID.randomUUID().toString());
+    logger.info("Tentativa de login para usuário: {} | correlationId={}", request.getEmail(), MDC.get("correlationId"));
         
-        try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getSenha()));
-            Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
-                    .orElseThrow(() -> new RuntimeException(MSG_USUARIO_NAO_ENCONTRADO));
-                    
-            String token = jwtUtil.generateToken(User.withUsername(usuario.getEmail()).password(usuario.getSenha()).authorities("ROLE_" + usuario.getRole().name()).build(), usuario);
-            logger.debug("Login realizado com sucesso para usuário: {}", request.getEmail());
-            
-            return ResponseEntity.ok(ApiResponseDTO.success(token, MSG_LOGIN_REALIZADO));
-        } catch (Exception e) {
-            logger.error("Erro no login para usuário {}: {}", request.getEmail(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponseDTO.error("Credenciais inválidas"));
-        }
+    try {
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getSenha()));
+        Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
+            .orElseThrow(() -> new RuntimeException(MSG_USUARIO_NAO_ENCONTRADO));
+        metricsService.atualizarUsuariosAtivos(1);
+        String token = jwtUtil.generateToken(User.withUsername(usuario.getEmail()).password(usuario.getSenha()).authorities("ROLE_" + usuario.getRole().name()).build(), usuario);
+        logger.debug("Login realizado com sucesso para usuário: {}", request.getEmail());
+        return ResponseEntity.ok(ApiResponseDTO.success(token, MSG_LOGIN_REALIZADO));
+    } catch (Exception e) {
+        logger.error("Erro no login para usuário {}: {}", request.getEmail(), e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            .body(ApiResponseDTO.error("Credenciais inválidas"));
+    }
     }
 }

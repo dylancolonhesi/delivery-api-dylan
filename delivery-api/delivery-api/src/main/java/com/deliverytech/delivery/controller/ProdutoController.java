@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.deliverytech.delivery.dto.request.ProdutoRequest;
 import com.deliverytech.delivery.dto.response.ApiResponseDTO;
 import com.deliverytech.delivery.dto.response.ProdutoResponse;
+import com.deliverytech.delivery.metrics.BusinessMetricsService;
 import com.deliverytech.delivery.model.Produto;
 import com.deliverytech.delivery.service.ProdutoService;
 import com.deliverytech.delivery.service.RestauranteService;
@@ -45,6 +46,7 @@ public class ProdutoController {
 
     private final ProdutoService produtoService;
     private final RestauranteService restauranteService;
+    private final BusinessMetricsService metricsService;
 
     
     @PostMapping
@@ -73,14 +75,13 @@ public class ProdutoController {
                 request.getRestauranteId()
         );
 
-        Produto salvo = produtoService.cadastrarProduto(novoRequest);
-        logger.debug("Produto salvo com ID {}", salvo.getId());
-        
-        ProdutoResponse response = new ProdutoResponse(
-                salvo.getId(), salvo.getNome(), salvo.getCategoria(), salvo.getDescricao(), salvo.getPreco(), salvo.getDisponivel());
-        
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponseDTO.success(response, MSG_PRODUTO_CADASTRADO));
+    Produto salvo = produtoService.cadastrarProduto(novoRequest);
+    metricsService.atualizarProdutosVendidos(1);
+    logger.debug("Produto salvo com ID {}", salvo.getId());
+    ProdutoResponse response = new ProdutoResponse(
+        salvo.getId(), salvo.getNome(), salvo.getCategoria(), salvo.getDescricao(), salvo.getPreco(), salvo.getDisponivel());
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(ApiResponseDTO.success(response, MSG_PRODUTO_CADASTRADO));
     }
 
     @GetMapping("/restaurante/{restauranteId}")

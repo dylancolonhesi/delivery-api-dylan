@@ -18,6 +18,7 @@ import com.deliverytech.delivery.dto.request.RestauranteRequest;
 import com.deliverytech.delivery.dto.response.ApiResponseDTO;
 import com.deliverytech.delivery.dto.response.PagedResponse;
 import com.deliverytech.delivery.dto.response.RestauranteResponse;
+import com.deliverytech.delivery.metrics.BusinessMetricsService;
 import com.deliverytech.delivery.model.Restaurante;
 import com.deliverytech.delivery.service.RestauranteService;
 import com.deliverytech.delivery.util.PagedResponseUtil;
@@ -45,6 +46,7 @@ public class RestauranteController {
     private static final String MSG_TAXA_CALCULADA = "Taxa de entrega calculada com sucesso";
 
     private final RestauranteService restauranteService;
+    private final BusinessMetricsService metricsService;
 
     @PostMapping
     @Operation(summary = "Cadastrar restaurante",
@@ -62,7 +64,8 @@ public class RestauranteController {
             ) RestauranteRequest request) {
         logger.info("Cadastro de restaurante iniciado: {}", request.getNome());
         try {
-            Restaurante salvo = restauranteService.cadastrarRestaurante(request);
+        Restaurante salvo = restauranteService.cadastrarRestaurante(request);
+        metricsService.registrarLatenciaOperacaoCritica(() -> {});
             logger.debug("Restaurante salvo com ID {}", salvo.getId());
             
             RestauranteResponse response = new RestauranteResponse(
