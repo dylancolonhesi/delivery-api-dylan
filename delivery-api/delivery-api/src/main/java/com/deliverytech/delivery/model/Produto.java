@@ -22,7 +22,12 @@ public class Produto {
 
     private BigDecimal preco;
 
+    @Builder.Default
     private Boolean disponivel = true;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer estoque = 0;
 
     @ManyToOne
     @JoinColumn(name = "restaurante_id")

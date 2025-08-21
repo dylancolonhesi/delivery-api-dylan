@@ -39,18 +39,18 @@ public class SecurityConfig {
                         .requestMatchers("/health","/info","/swagger-ui.html","/swagger-ui/**", "/api-docs/**", "/h2-console/**", "/actuator/**").permitAll()
 
                         // Endpoints de Cliente: ADMIN pode gerenciar, CLIENTE pode se cadastrar
-                        .requestMatchers("/api/clientes","/clientes").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENTE")
-                        .requestMatchers("/api/clientes/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENTE")
+                                .requestMatchers("/api/clientes","/clientes").hasAnyAuthority("ROLE_RESTAURANTE", "ROLE_CLIENTE")
+                                .requestMatchers("/api/clientes/**").hasAnyAuthority("ROLE_RESTAURANTE", "ROLE_CLIENTE")
 
                         // Endpoints de Pedido: Apenas CLIENTE pode criar/ver
                         .requestMatchers("/api/pedidos").hasAuthority("ROLE_CLIENTE")
                         .requestMatchers("/api/pedidos/**").hasAuthority("ROLE_CLIENTE")
                         
                         // Endpoints de Restaurante e Produto: Apenas ADMIN pode gerenciar
-                        .requestMatchers("/api/restaurantes").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/api/restaurantes/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/api/produtos").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/api/produtos/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/restaurantes").permitAll() // Permite acesso a todos para listar restaurantes
+                                .requestMatchers("/api/restaurantes/**").hasAuthority("ROLE_RESTAURANTE")
+                        .requestMatchers("/api/produtos").permitAll() // Permite acesso a todos para listar produtos
+                                .requestMatchers("/api/produtos/**").hasAuthority("ROLE_RESTAURANTE")
                         
                         // Garante que qualquer outra requisição não listada seja bloqueada
                         .anyRequest().authenticated() 

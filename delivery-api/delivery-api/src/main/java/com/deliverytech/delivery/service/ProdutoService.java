@@ -14,4 +14,5 @@ public interface ProdutoService {
     Produto atualizarProduto(Long id, ProdutoRequest dto);
     void alterarDisponibilidade(Long id, boolean disponivel);
     List<Produto> buscarProdutosPorCategoria(String categoria);
+    boolean podeAcessarProdutosRestaurante(Long usuarioRestauranteId, Long restauranteId);
 }

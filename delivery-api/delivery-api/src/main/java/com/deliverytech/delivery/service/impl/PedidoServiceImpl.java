@@ -112,6 +112,26 @@ public class PedidoServiceImpl implements PedidoService {
         return restaurante;
     }
     
+    private Produto buscarEValidarProduto(Long produtoId, Restaurante restaurante, Integer quantidadeSolicitada) {
+        Produto produto = produtoRepository.findByIdForUpdate(produtoId);
+        if (produto == null) {
+            throw new EntityNotFoundException("Produto", produtoId);
+        }
+        if (Boolean.FALSE.equals(produto.getDisponivel())) {
+            throw new ValidationException(String.format("Produto '%s' não está disponível", produto.getNome()));
+        }
+        if (!produto.getRestaurante().getId().equals(restaurante.getId())) {
+            throw new ValidationException(String.format("Produto '%s' não pertence ao restaurante selecionado", produto.getNome()));
+        }
+        if (produto.getEstoque() < quantidadeSolicitada) {
+            throw new ValidationException(String.format("Produto '%s' não possui estoque suficiente. Disponível: %d", produto.getNome(), produto.getEstoque()));
+        }
+
+        produto.setEstoque(produto.getEstoque() - quantidadeSolicitada);
+        produtoRepository.save(produto);
+        return produto;
+    }
+
     private List<Produto> validarProdutos(List<ItemPedidoRequest> itens, Restaurante restaurante) {
         log.debug("Validando {} produtos", itens.size());
         
@@ -123,7 +143,7 @@ public class PedidoServiceImpl implements PedidoService {
         
         for (ItemPedidoRequest item : itens) {
             validarQuantidadeItem(item);
-            Produto produto = buscarEValidarProduto(item.getProdutoId(), restaurante);
+            Produto produto = buscarEValidarProduto(item.getProdutoId(), restaurante, item.getQuantidade());
             produtos.add(produto);
         }
         
@@ -135,21 +155,6 @@ public class PedidoServiceImpl implements PedidoService {
         if (item.getQuantidade() == null || item.getQuantidade() <= 0) {
             throw new ValidationException("quantidade", "Quantidade deve ser maior que zero");
         }
-    }
-    
-    private Produto buscarEValidarProduto(Long produtoId, Restaurante restaurante) {
-        Produto produto = produtoRepository.findById(produtoId)
-                .orElseThrow(() -> new EntityNotFoundException("Produto", produtoId));
-        
-        if (Boolean.FALSE.equals(produto.getDisponivel())) {
-            throw new ValidationException(String.format("Produto '%s' não está disponível", produto.getNome()));
-        }
-        
-        if (!produto.getRestaurante().getId().equals(restaurante.getId())) {
-            throw new ValidationException(String.format("Produto '%s' não pertence ao restaurante selecionado", produto.getNome()));
-        }
-        
-        return produto;
     }
     
     private BigDecimal calcularTotalItens(List<ItemPedidoRequest> itens, List<Produto> produtos) {

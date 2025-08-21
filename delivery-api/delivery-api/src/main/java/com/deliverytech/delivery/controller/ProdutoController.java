@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +24,8 @@ import com.deliverytech.delivery.dto.response.ApiResponseDTO;
 import com.deliverytech.delivery.dto.response.ProdutoResponse;
 import com.deliverytech.delivery.metrics.BusinessMetricsService;
 import com.deliverytech.delivery.model.Produto;
+import com.deliverytech.delivery.model.Usuario;
+import com.deliverytech.delivery.repository.UsuarioRepository;
 import com.deliverytech.delivery.service.ProdutoService;
 import com.deliverytech.delivery.service.RestauranteService;
 
@@ -47,6 +51,7 @@ public class ProdutoController {
     private final ProdutoService produtoService;
     private final RestauranteService restauranteService;
     private final BusinessMetricsService metricsService;
+    private final UsuarioRepository usuarioRepository;
 
     
     @PostMapping
@@ -89,15 +94,25 @@ public class ProdutoController {
                description = "Lista todos os produtos de um restaurante específico")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Produtos do restaurante listados com sucesso"),
-        @ApiResponse(responseCode = "404", description = "Restaurante não encontrado")
+        @ApiResponse(responseCode = "404", description = "Restaurante não encontrado"),
+        @ApiResponse(responseCode = "403", description = "Acesso negado ao restaurante")
     })
     public ResponseEntity<ApiResponseDTO<List<ProdutoResponse>>> listarPorRestaurante(
-            @PathVariable @Parameter(description = "ID do restaurante") Long restauranteId) {
+            @PathVariable @Parameter(description = "ID do restaurante") Long restauranteId,
+            @AuthenticationPrincipal User userDetails) {
         logger.debug("Listando produtos do restaurante com ID {}", restauranteId);
+        if (userDetails != null) {
+            Usuario usuario = usuarioRepository.findByEmail(userDetails.getUsername()).orElse(null);
+            if (usuario != null && usuario.getRole() != null && usuario.getRole().name().equals("RESTAURANTE")) {
+                if (!produtoService.podeAcessarProdutosRestaurante(usuario.getRestauranteId(), restauranteId)) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(ApiResponseDTO.error("Acesso negado: restaurante só pode ver seus próprios produtos."));
+                }
+            }
+        }
         List<ProdutoResponse> produtos = produtoService.buscarProdutosPorRestaurante(restauranteId).stream()
                 .map(p -> new ProdutoResponse(p.getId(), p.getNome(), p.getCategoria(), p.getDescricao(), p.getPreco(), p.getDisponivel()))
                 .collect(Collectors.toList());
-        
         String mensagem = String.format("Produtos do restaurante ID %d listados com sucesso", restauranteId);
         return ResponseEntity.ok(ApiResponseDTO.success(produtos, mensagem));
     }

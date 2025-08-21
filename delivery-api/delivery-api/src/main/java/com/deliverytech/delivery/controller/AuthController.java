@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -61,15 +62,13 @@ public class AuthController {
                 description = "Dados do usuário a ser registrado",
                 required = true
             ) RegisterRequest request) {
-    MDC.put("correlationId", java.util.UUID.randomUUID().toString());
-    logger.info("Registro de usuário iniciado: {} | correlationId={}", request.getEmail(), MDC.get("correlationId"));
-        
+        MDC.put("correlationId", java.util.UUID.randomUUID().toString());
+        logger.info("Registro de usuário iniciado: {} | correlationId={}", request.getEmail(), MDC.get("correlationId"));
         if (usuarioRepository.findByEmail(request.getEmail()).isPresent()) {
             logger.warn("Tentativa de registro com email já cadastrado: {}", request.getEmail());
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(ApiResponseDTO.error(MSG_EMAIL_JA_CADASTRADO));
         }
-
         Usuario usuario = Usuario.builder()
                 .email(request.getEmail())
                 .senha(passwordEncoder.encode(request.getSenha()))
@@ -78,13 +77,11 @@ public class AuthController {
                 .ativo(true)
                 .restauranteId(request.getRestauranteId())
                 .build();
-
-    usuarioRepository.save(usuario);
-    metricsService.atualizarUsuariosAtivos(1);
-    logger.debug("Usuário salvo com ID {}", usuario.getId());
-    String token = jwtUtil.generateToken(User.withUsername(usuario.getEmail()).password(usuario.getSenha()).authorities("ROLE_" + usuario.getRole().name()).build(), usuario);
-    return ResponseEntity.status(HttpStatus.CREATED)
-        .body(ApiResponseDTO.success(token, MSG_USUARIO_REGISTRADO));
+        usuarioRepository.save(usuario);
+        metricsService.atualizarUsuariosAtivos(1);
+        logger.debug("Usuário salvo com ID {}", usuario.getId());
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(ApiResponseDTO.success(null, MSG_USUARIO_REGISTRADO));
     }
 
     @PostMapping("/login")
@@ -118,5 +115,23 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
             .body(ApiResponseDTO.error("Credenciais inválidas"));
     }
+    }
+
+    @Operation(summary = "Obter dados do usuário autenticado", description = "Retorna os dados do usuário logado via token JWT")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Dados do usuário retornados com sucesso"),
+        @ApiResponse(responseCode = "401", description = "Token inválido ou ausente")
+    })
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponseDTO<Usuario>> getMe(@org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.User userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponseDTO.error("Token inválido ou ausente"));
+        }
+        Usuario usuario = usuarioRepository.findByEmail(userDetails.getUsername())
+            .orElse(null);
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseDTO.error("Usuário não encontrado"));
+        }
+        return ResponseEntity.ok(ApiResponseDTO.success(usuario, "Dados do usuário retornados com sucesso"));
     }
 }

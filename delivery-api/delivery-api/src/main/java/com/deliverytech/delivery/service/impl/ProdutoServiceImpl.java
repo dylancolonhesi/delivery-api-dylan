@@ -76,4 +76,12 @@ public class ProdutoServiceImpl implements ProdutoService {
     public List<Produto> buscarProdutosPorCategoria(String categoria) {
         return produtoRepository.findByCategoria(categoria);
     }
+
+    @Override
+    public boolean podeAcessarProdutosRestaurante(Long usuarioRestauranteId, Long restauranteId) {
+        if (usuarioRestauranteId == null) {
+            return false;
+        }
+        return usuarioRestauranteId.equals(restauranteId);
+    }
 }
